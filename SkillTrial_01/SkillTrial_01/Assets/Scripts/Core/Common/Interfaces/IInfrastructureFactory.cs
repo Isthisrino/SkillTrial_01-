@@ -6,6 +6,6 @@ namespace Elder.Core.Common.Interfaces
 {
     public interface IInfrastructureFactory : IDisposable
     {
-        public bool TryBuildInfrastructures(IMainFrameworkServiceProvider serviceProvider, out IEnumerable<KeyValuePair<Type, IInfrastructure>> infrastructures);
+        public bool TryBuildInfrastructures(ISystemProvider serviceProvider, out IEnumerable<KeyValuePair<Type, IInfrastructure>> infrastructures);
     }
 }

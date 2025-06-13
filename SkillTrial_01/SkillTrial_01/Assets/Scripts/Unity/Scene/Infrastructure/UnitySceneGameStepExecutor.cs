@@ -1,17 +1,19 @@
 using Elder.Core.Common.BaseClasses;
-using Elder.Core.Common.Interfaces;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Elder.Unity.Scene.Infrastructure
 {
-    public class UnitySceneGameStepExecutor : DisposableBase, IInfrastructure
+    public class UnitySceneGameStepExecutor : InfrastructureBase
     {
+        public override void Initialize()
+        {
+            
+        }
         protected override void DisposeManagedResources()
         {
-
+            base.DisposeManagedResources();
         }
-
         protected override void DisposeUnmanagedResources()
         {
 

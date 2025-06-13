@@ -13,7 +13,7 @@ namespace Elder.Unity.Logging.Infrastructure
         [System.Diagnostics.Conditional("UNITY_LOGGER")]
         public void SubscribeToLogAppService()
         {
-            _logSubscription = LogAppService.In.LogEvents.Subscribe(HandleLogEvent);
+            _logSubscription = LogAppSystem.In.LogEvents.Subscribe(HandleLogEvent);
         }
         private void HandleLogEvent(LogEvent logEvent)
         {

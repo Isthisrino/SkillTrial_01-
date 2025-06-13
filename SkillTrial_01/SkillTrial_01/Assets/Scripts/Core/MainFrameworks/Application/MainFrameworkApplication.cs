@@ -1,6 +1,9 @@
 using Elder.Core.Common.BaseClasses;
+using Elder.Core.Common.Enums;
 using Elder.Core.Common.Interfaces;
+using Elder.Core.GameFlow.Interfaces;
 using Elder.Core.Logging.Application;
+using Elder.Core.Logging.Interfaces;
 using Elder.Core.MainFrameworks.Application.Container;
 using Elder.Core.MainFrameworks.Interfaces;
 
@@ -8,76 +11,114 @@ namespace Elder.Core.MainFrameworks.Application
 {
     public class MainFrameworkApplication : DisposableBase, IMainFrameworkApplication
     {
-        private ServiceContainer _serviceContainer;
-        private AppServiceContainer _appServiceContainer;
+        private ILoggerEx _logger = LogAppSystem.In.CreateLogger<MainFrameworkApplication>();
 
-        public MainFrameworkApplication(IMainFrameworkInfrastructureProvider infrastructureProvider)
-        {
-            InitializeMainFrameworkApplication(infrastructureProvider);
-        }
-        private void InitializeMainFrameworkApplication(IMainFrameworkInfrastructureProvider provider)
-        {
-            InitializeServiceContainer();
-            InitializeAppServiceContainer();
+        private DomainSystemContainer _domainSystemContainer;
+        private AppSystemContainer _appSystemContainer;
 
-            InitializeGeneralServices(provider);
-        }
-        private void InitializeGeneralServices(IMainFrameworkInfrastructureProvider provider)
+        public MainFrameworkApplication(IMainFrameworkInfrastructureProvider provider)
         {
-            RegisterServices(provider.ServiceFactory);
-            RegisterAppServices(provider.AppServiceFactory);
+            InitializeDomainLayer(provider.DomainSystemFactory);
+            InitializeAppLayer(provider.AppSystemFactory);
+            StartApplicationFlow();
         }
-        private void RegisterServices(IServiceFactory serviceFactory)
+        private void StartApplicationFlow()
         {
-            if (!serviceFactory.TryBuildCoreServices(this, out var pairs))
+            if (!TryGetAppSystem<IGameFlowAppSystem>(out var gameFlowAppSystem))
+            {
+                _logger.Error("[StartApplicationFlow] Failed to find IGameFlowAppSystem. Cannot start application flow.");
+                return;
+            }
+            gameFlowAppSystem.ChangeFlowState(GameFlowState.Boot);
+        }
+        private void InitializeDomainLayer(IDomainSystemFactory domainFactory)
+        {
+            InitializeDomainSystemContainer();
+            RegisterDomainSystems(domainFactory);
+            InitializeDomainSystems();
+        }
+        private void InitializeAppLayer(IAppSystemFactory appFactory)
+        {
+            InitializeAppSystemContainer();
+            RegisterAppSystems(appFactory);
+            InitializeAppSystems();
+            PostInitializeAppSystems();
+        }
+        private void PostInitializeAppSystems()
+        {
+            var appSystems = _appSystemContainer.AppSystems;
+            foreach (var appSystem in appSystems)
+                appSystem.PostInitialize();
+        }
+        private void InitializeDomainSystems()
+        {
+            var domainSystems = _domainSystemContainer.DomainSystems;
+            foreach (var domainSystem in domainSystems)
+                domainSystem.Initialize();
+        }
+        private void InitializeAppSystems()
+        {
+            var appSystems = _appSystemContainer.AppSystems;
+            foreach (var appSystem in appSystems)
+                appSystem.Initialize();
+        }
+        private void RegisterDomainSystems(IDomainSystemFactory domainSystemFactory)
+        {
+            if (!domainSystemFactory.TryBuildDomainSystems(this, out var pairs))
                 return;
 
             foreach (var pair in pairs)
-                _serviceContainer.RegisterServices(pair.Value);
+                _domainSystemContainer.RegisterDomainSystems(pair.Value);
         }
-        private void RegisterAppServices(IAppServiceFactory appServiceFactory)
+        private void RegisterAppSystems(IAppSystemFactory appSystemFactory)
         {
-            if (!appServiceFactory.TryBuildAppServices(this, out var pairs))
+            if (!appSystemFactory.TryBuildAppSystems(this, out var pairs))
                 return;
 
             foreach (var pair in pairs)
-                _appServiceContainer.RegisterAppService(pair.Value);
+                _appSystemContainer.RegisterAppSystem(pair.Value);
         }
-        private void InitializeServiceContainer()
+        private void InitializeDomainSystemContainer()
         {
-            _serviceContainer = new();
+            _domainSystemContainer = new();
         }
-        private void InitializeAppServiceContainer()
+        private void InitializeAppSystemContainer()
         {
-            _appServiceContainer = new();
+            _appSystemContainer = new();
         }
-        public bool TryGetService<T>(out T targetService) where T : IService
+        public bool TryGetSystem<T>(out T targetService) where T : IDomainSystem
         {
-            return _serviceContainer.TryGetService(out targetService);
+            return _domainSystemContainer.TryGetSDomainSystem(out targetService);
         }
-        public bool TryGetAppService<T>(out T targetAppService) where T : IAppService
+        public bool TryGetAppSystem<T>(out T targetAppService) where T : IAppSystem
         {
-            return _appServiceContainer.TryGetAppService(out targetAppService);
+            return _appSystemContainer.TryGetAppSystem(out targetAppService);
         }
         protected override void DisposeManagedResources()
         {
-            DisposeAppServiceContainer();
-            DisposeServiceContainer();
-            DisposeLogService();
+            ClearLogger();
+
+            DisposeAppSystemContainer();
+            DisposeDomainSystemContainer();
+            DisposeLogAppSystem();
         }
-        private void DisposeLogService()
+        private void ClearLogger()
         {
-            LogAppService.In.Dispose();
+            _logger = null;
         }
-        private void DisposeServiceContainer()
+        private void DisposeLogAppSystem()
         {
-            _serviceContainer.Dispose();
-            _serviceContainer = null;
+            LogAppSystem.In.Dispose();
         }
-        private void DisposeAppServiceContainer()
+        private void DisposeDomainSystemContainer()
         {
-            _appServiceContainer.Dispose();
-            _appServiceContainer = null;
+            _domainSystemContainer.Dispose();
+            _domainSystemContainer = null;
+        }
+        private void DisposeAppSystemContainer()
+        {
+            _appSystemContainer.Dispose();
+            _appSystemContainer = null;
         }
         protected override void DisposeUnmanagedResources()
         {

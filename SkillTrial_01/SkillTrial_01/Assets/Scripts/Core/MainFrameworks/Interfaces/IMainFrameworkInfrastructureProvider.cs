@@ -4,7 +4,7 @@ namespace Elder.Core.MainFrameworks.Interfaces
 {
     public interface IMainFrameworkInfrastructureProvider
     {
-        public IServiceFactory ServiceFactory { get; }
-        public IAppServiceFactory AppServiceFactory { get; }
+        public IDomainSystemFactory DomainSystemFactory { get; }
+        public IAppSystemFactory AppSystemFactory { get; }
     }
 }

@@ -4,7 +4,7 @@ using System;
 
 namespace Elder.Core.Logging.Application
 {
-    public class Logger : DisposableBase, ILogger
+    public class Logger : DisposableBase, ILoggerEx
     {
         private Type _ownerType;
         private IObserver<LogEvent> _logObserver;
