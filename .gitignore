@@ -83,3 +83,10 @@ crashlytics-build.properties
 /[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
 /[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
 /[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
+
+# 👇 GitHub 푸시 오류 원인 되는 대용량 패키지 캐시 제거
+/Packages/PackageCache/
+
+# 👇 추가: Unity Editor 및 Burst 컴파일러에서 생성하는 거대한 런타임 바이너리
+**/com.unity.burst*/.Runtime/
+**/com.unity.toolchain.*@*/data~/
