@@ -90,3 +90,6 @@ crashlytics-build.properties
 # 👇 추가: Unity Editor 및 Burst 컴파일러에서 생성하는 거대한 런타임 바이너리
 **/com.unity.burst*/.Runtime/
 **/com.unity.toolchain.*@*/data~/
+
+# 👇 하위 Unity 프로젝트의 Library 폴더도 무시
+**/[Ll]ibrary/
