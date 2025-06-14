@@ -51,6 +51,8 @@ namespace Elder.Core.GameFlow.Application
             ClearGameFlowStateObservable();
             DisposeGameFlowStateCommand();
             ClearGmaeFlowSystem();
+
+            base.DisposeManagedResources();
         }
         private void ClearGmaeFlowSystem()
         {

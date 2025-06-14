@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace Elder.Unity.MainFrameworks.Infrastructure
 {
     public class MainFrameworkInfrastructure : MonoBehaviour, IMainFrameworkInfrastructureProvider
