@@ -12,43 +12,43 @@ using UnityEngine;
 
 namespace Elder.Unity.MainFrameworks.Infrastructure
 {
-    public class MainFrameworkInfrastructure : MonoBehaviour, IMainFrameworkInfrastructureProvider
+    public class MainFrameworkInfrastructure : MonoBehaviour, IFactoryProvider, IInfrastructureProvider
     {
-        private ILoggerEx _logger = LogAppSystem.In.CreateLogger<MainFrameworkInfrastructure>();
+        private ILoggerEx _logger = LogApplication.In.CreateLogger<MainFrameworkInfrastructure>();
 
         private IMainFrameworkApplication _mainFrameworkApplication;
 
         private Dictionary<Type, IInfrastructure> _infrastructures;
 
-        public IDomainSystemFactory DomainSystemFactory { get; protected set; }
-        public IAppSystemFactory AppSystemFactory { get; protected set; }
+        public IDomainFactory DomainFactory { get; protected set; }
+        public IApplicationFactory ApplicationFactory { get; protected set; }
         public IInfrastructureFactory InfrastructureFactory { get; protected set; }
 
         private void Awake()
         {
             InitializeUnityLogger();
             InitializeFactories();
-            InitializeApplication();
             InitializeInfrastructure();
+            InitializeApplication();
             SetupPersistence();
         }
         private void InitializeUnityLogger()
         {
-            UnityLogger.In.SubscribeToLogAppService();
+            UnityLogger.In.SubscribeToLogAppplication();
         }
         private void InitializeFactories()
         {
-            CreateServiceFactory();
-            CreateAppServiceFactory();
+            CreateDomainFactory();
+            CreateApplicationFactory();
             CreateInfrastructFactory();
         }
-        protected virtual void CreateServiceFactory()
+        protected virtual void CreateDomainFactory()
         {
-            DomainSystemFactory = new DomainSystemFactoryBase();
+            DomainFactory = new DomainFactoryBase();
         }
-        protected virtual void CreateAppServiceFactory()
+        protected virtual void CreateApplicationFactory()
         {
-            AppSystemFactory = new AppSystemFactoryBase();
+            ApplicationFactory = new ApplicationFactoryBase();
         }
         protected virtual void CreateInfrastructFactory()
         {
@@ -60,7 +60,7 @@ namespace Elder.Unity.MainFrameworks.Infrastructure
         }
         private void CreateMainFrameworkApplication()
         {
-            _mainFrameworkApplication = new MainFrameworkApplication(this);
+            _mainFrameworkApplication = new MainFrameworkApplication(this, this);
         }
         private void InitializeInfrastructure()
         {
@@ -85,6 +85,16 @@ namespace Elder.Unity.MainFrameworks.Infrastructure
         {
             DontDestroyOnLoad(this);
         }
+        public bool TryGetInfrastructure<T>(out T infrastructure) where T : IInfrastructure
+        {
+            if (_infrastructures.TryGetValue(typeof(T), out var s) && s is T typed)
+            {
+                infrastructure = typed;
+                return true;
+            }
+            infrastructure = default!;
+            return false;
+        }
         private void OnDestroy()
         {
             ClearLogger();
@@ -105,5 +115,7 @@ namespace Elder.Unity.MainFrameworks.Infrastructure
             _mainFrameworkApplication?.Dispose();
             _mainFrameworkApplication = null;
         }
+
+     
     }
 }

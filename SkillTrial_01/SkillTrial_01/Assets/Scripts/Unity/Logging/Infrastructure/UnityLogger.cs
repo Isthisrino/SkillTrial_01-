@@ -11,9 +11,9 @@ namespace Elder.Unity.Logging.Infrastructure
         private IDisposable _logSubscription;
 
         [System.Diagnostics.Conditional("UNITY_LOGGER")]
-        public void SubscribeToLogAppService()
+        public void SubscribeToLogAppplication()
         {
-            _logSubscription = LogAppSystem.In.LogEvents.Subscribe(HandleLogEvent);
+            _logSubscription = LogApplication.In.LogEvents.Subscribe(HandleLogEvent);
         }
         private void HandleLogEvent(LogEvent logEvent)
         {

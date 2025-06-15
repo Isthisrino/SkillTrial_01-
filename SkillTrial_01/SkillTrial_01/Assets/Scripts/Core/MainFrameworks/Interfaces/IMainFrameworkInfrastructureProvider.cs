@@ -2,9 +2,10 @@ using Elder.Core.Common.Interfaces;
 
 namespace Elder.Core.MainFrameworks.Interfaces
 {
-    public interface IMainFrameworkInfrastructureProvider
+    public interface IFactoryProvider
     {
-        public IDomainSystemFactory DomainSystemFactory { get; }
-        public IAppSystemFactory AppSystemFactory { get; }
+        public IDomainFactory DomainFactory { get; }
+        public IApplicationFactory ApplicationFactory { get; }
+      
     }
 }

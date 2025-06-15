@@ -11,95 +11,99 @@ namespace Elder.Core.MainFrameworks.Application
 {
     public class MainFrameworkApplication : DisposableBase, IMainFrameworkApplication
     {
-        private ILoggerEx _logger = LogAppSystem.In.CreateLogger<MainFrameworkApplication>();
+        private ILoggerEx _logger = LogApplication.In.CreateLogger<MainFrameworkApplication>();
 
-        private DomainSystemContainer _domainSystemContainer;
-        private AppSystemContainer _appSystemContainer;
+        private IInfrastructureProvider _infrastructureProvider;
 
-        public MainFrameworkApplication(IMainFrameworkInfrastructureProvider provider)
+        private DomainContainer _domainContainer;
+        private ApplicationContainer _applicationContainer;
+
+        public MainFrameworkApplication(IInfrastructureProvider infrastructureProvider, IFactoryProvider factoryProvider)
         {
-            InitializeDomainLayer(provider.DomainSystemFactory);
-            InitializeAppLayer(provider.AppSystemFactory);
+            _infrastructureProvider = infrastructureProvider;
+
+            InitializeDomainLayer(factoryProvider.DomainFactory);
+            InitializeAppLayer(factoryProvider.ApplicationFactory);
             StartApplicationFlow();
         }
         private void StartApplicationFlow()
         {
-            if (!TryGetAppSystem<IGameFlowAppSystem>(out var gameFlowAppSystem))
+            if (!TryGetApplication<IGameFlowApplication>(out var gameFlowAppSystem))
             {
                 _logger.Error("[StartApplicationFlow] Failed to find IGameFlowAppSystem. Cannot start application flow.");
                 return;
             }
             gameFlowAppSystem.ChangeFlowState(GameFlowState.Boot);
         }
-        private void InitializeDomainLayer(IDomainSystemFactory domainFactory)
+        private void InitializeDomainLayer(IDomainFactory domainFactory)
         {
-            InitializeDomainSystemContainer();
-            RegisterDomainSystems(domainFactory);
-            InitializeDomainSystems();
+            InitializeDomainContainer();
+            RegisterDomains(domainFactory);
+            InitializeDomains();
         }
-        private void InitializeAppLayer(IAppSystemFactory appFactory)
+        private void InitializeAppLayer(IApplicationFactory appFactory)
         {
-            InitializeAppSystemContainer();
-            RegisterAppSystems(appFactory);
-            InitializeAppSystems();
-            PostInitializeAppSystems();
+            InitializeApplicationContainer();
+            RegisterApplications(appFactory);
+            InitializeApplications();
+            PostInitializeApplications();
         }
-        private void PostInitializeAppSystems()
+        private void PostInitializeApplications()
         {
-            var appSystems = _appSystemContainer.AppSystems;
-            foreach (var appSystem in appSystems)
-                appSystem.PostInitialize();
+            var applications = _applicationContainer.Applications;
+            foreach (var application in applications)
+                application.PostInitialize();
         }
-        private void InitializeDomainSystems()
+        private void InitializeDomains()
         {
-            var domainSystems = _domainSystemContainer.DomainSystems;
-            foreach (var domainSystem in domainSystems)
-                domainSystem.Initialize();
+            var domains = _domainContainer.Domains;
+            foreach (var domain in domains)
+                domain.Initialize();
         }
-        private void InitializeAppSystems()
+        private void InitializeApplications()
         {
-            var appSystems = _appSystemContainer.AppSystems;
-            foreach (var appSystem in appSystems)
-                appSystem.Initialize();
+            var applications = _applicationContainer.Applications;
+            foreach (var application in applications)
+                application.Initialize();
         }
-        private void RegisterDomainSystems(IDomainSystemFactory domainSystemFactory)
+        private void RegisterDomains(IDomainFactory domainFactory)
         {
-            if (!domainSystemFactory.TryBuildDomainSystems(this, out var pairs))
+            if (!domainFactory.TryBuildDomains(this, out var pairs))
                 return;
 
             foreach (var pair in pairs)
-                _domainSystemContainer.RegisterDomainSystems(pair.Value);
+                _domainContainer.RegisterDomain(pair.Value);
         }
-        private void RegisterAppSystems(IAppSystemFactory appSystemFactory)
+        private void RegisterApplications(IApplicationFactory appSystemFactory)
         {
-            if (!appSystemFactory.TryBuildAppSystems(this, out var pairs))
+            if (!appSystemFactory.TryBuildApplication(this, out var pairs))
                 return;
 
             foreach (var pair in pairs)
-                _appSystemContainer.RegisterAppSystem(pair.Value);
+                _applicationContainer.RegisterApplication(pair.Value);
         }
-        private void InitializeDomainSystemContainer()
+        private void InitializeDomainContainer()
         {
-            _domainSystemContainer = new();
+            _domainContainer = new();
         }
-        private void InitializeAppSystemContainer()
+        private void InitializeApplicationContainer()
         {
-            _appSystemContainer = new();
+            _applicationContainer = new();
         }
-        public bool TryGetSystem<T>(out T targetService) where T : IDomainSystem
+        public bool TryGetDomain<T>(out T targetDomain) where T : IDomain
         {
-            return _domainSystemContainer.TryGetSDomainSystem(out targetService);
+            return _domainContainer.TryGetDomain(out targetDomain);
         }
-        public bool TryGetAppSystem<T>(out T targetAppService) where T : IAppSystem
+        public bool TryGetApplication<T>(out T targetApplication) where T : IApplication
         {
-            return _appSystemContainer.TryGetAppSystem(out targetAppService);
+            return _applicationContainer.TryGetApplication(out targetApplication);
         }
         protected override void DisposeManagedResources()
         {
             ClearLogger();
 
-            DisposeAppSystemContainer();
-            DisposeDomainSystemContainer();
+            DisposeApplicationContainer();
+            DisposeDomainContainer();
             DisposeLogAppSystem();
         }
         private void ClearLogger()
@@ -108,17 +112,17 @@ namespace Elder.Core.MainFrameworks.Application
         }
         private void DisposeLogAppSystem()
         {
-            LogAppSystem.In.Dispose();
+            LogApplication.In.Dispose();
         }
-        private void DisposeDomainSystemContainer()
+        private void DisposeDomainContainer()
         {
-            _domainSystemContainer.Dispose();
-            _domainSystemContainer = null;
+            _domainContainer.Dispose();
+            _domainContainer = null;
         }
-        private void DisposeAppSystemContainer()
+        private void DisposeApplicationContainer()
         {
-            _appSystemContainer.Dispose();
-            _appSystemContainer = null;
+            _applicationContainer.Dispose();
+            _applicationContainer = null;
         }
         protected override void DisposeUnmanagedResources()
         {
