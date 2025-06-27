@@ -24,9 +24,9 @@ namespace Elder.Core.MainFrameworks.Application
 
             InitializeDomainLayer(factoryProvider.DomainFactory);
             InitializeAppLayer(factoryProvider.ApplicationFactory);
-            StartApplicationFlow();
+            BeginInitialGameFlow();
         }
-        private void StartApplicationFlow()
+        private void BeginInitialGameFlow()
         {
             if (!TryGetApplication<IGameFlowApplication>(out var gameFlowAppSystem))
             {

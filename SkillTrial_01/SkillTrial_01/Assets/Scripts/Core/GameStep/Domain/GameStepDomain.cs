@@ -1,4 +1,5 @@
 using Elder.Core.Common.BaseClasses;
+using Elder.Core.Common.Enums;
 using Elder.Core.GameStep.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Elder.Core.GameStep.Domain
         public bool TrySetMainStep(in MainStep newMainStep, out MainStep previousMainStep)
         {
             previousMainStep = _previousMainStep;
-            if (_currrentMainStep.StepState == newMainStep.StepState)
+            if (newMainStep.StepState == MainStepState.None || _currrentMainStep.StepState == newMainStep.StepState)
                 return false;
 
             _currrentMainStep = newMainStep;

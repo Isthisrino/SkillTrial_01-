@@ -3,6 +3,7 @@ using Elder.Core.Common.Interfaces;
 using Elder.Core.Logging.Application;
 using Elder.Core.Logging.Interfaces;
 using Elder.Core.MainFrameworks.Application;
+using Elder.Core.MainFrameworks.Application.Container;
 using Elder.Core.MainFrameworks.Interfaces;
 using Elder.Unity.Logging.Infrastructure;
 using System;
@@ -69,7 +70,14 @@ namespace Elder.Unity.MainFrameworks.Infrastructure
         }
         private void RegisterInfrastructures()
         {
+            if (!InfrastructureFactory.TryBuildInfrastructures(_mainFrameworkApplication, out var pairs))
+            {
+                _logger.Error("[RegisterInfrastructures] Failed to build infrastructures from MainFrameworkInfrastructure");
+                return;
+            }
 
+            foreach (var pair in pairs)
+                _infrastructures.Add(pair.Key, pair.Value);
         }
         private void InitializeInfrastructures()
         {
@@ -116,6 +124,6 @@ namespace Elder.Unity.MainFrameworks.Infrastructure
             _mainFrameworkApplication = null;
         }
 
-     
+
     }
 }

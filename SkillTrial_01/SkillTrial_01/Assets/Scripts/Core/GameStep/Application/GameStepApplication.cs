@@ -50,12 +50,30 @@ namespace Elder.Core.GameStep.Application
         }
         private void HandleGameFlowStateChanged(GameFlowState changedState)
         {
-            // flow에 따라서 MainStep 변경 진행
-            ChangeMainStepByGameFlow(changedState);
+            UpdateMainStepFromGameFlowState(changedState);
         }
-        private void ChangeMainStepByGameFlow(GameFlowState changedState)
+        private void UpdateMainStepFromGameFlowState(GameFlowState changedState)
         {
-            
+            var targetMainStep = ConvertGameFlowStateToMainStep(changedState);
+            if (!_gameStepDomain.TrySetMainStep(targetMainStep, out var prevMainStep))
+                return;
+
+            _changeMainStepCommand.Execute((prevMainStep, targetMainStep));
+        }
+        private MainStep ConvertGameFlowStateToMainStep(GameFlowState changedState)
+        {
+            return new MainStep(GameFlowStateToMainStepState(changedState));
+        }
+        private MainStepState GameFlowStateToMainStepState(GameFlowState changedState)
+        {
+            return changedState switch
+            {
+                GameFlowState.Boot => MainStepState.Boot,
+                GameFlowState.Splash => MainStepState.Splash,
+                GameFlowState.Title => MainStepState.Title,
+                GameFlowState.GamePlay => MainStepState.GamePlay,
+                _ => MainStepState.None,
+            };
         }
         protected override void DisposeManagedResources()
         {

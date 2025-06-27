@@ -12,7 +12,6 @@ namespace Elder.Unity.GameStep.Infrastructure
         }
         protected override void DisposeManagedResources()
         {
-
             base.DisposeManagedResources();
         }
         protected override void DisposeUnmanagedResources()
